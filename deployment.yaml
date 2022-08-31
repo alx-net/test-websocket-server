@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ws-app-service
+spec:
+  selector:
+    app: ws-app
+  ports:
+  - protocol: "TCP"
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ws-app
+spec:
+  selector:
+    matchLabels:
+      app: ws-app
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: ws-app
+    spec:
+      containers:
+      - name: ws-app
+        image: alexnetz/test-websocket-server:v1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ws-app-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /ws
+        pathType: Prefix
+        backend:
+          service:
+            name: ws-app-service
+            port:
+              number: 8080
